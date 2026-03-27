@@ -1,27 +1,51 @@
+using System.Collections;
 using UnityEngine;
 
 public class PlayerShootingRay : MonoBehaviour
 {
-    private EnemyStats _enemyStats;
-    public Transform shootPoint;
+    public Transform muzzle;
+    public Camera _camera;
+    public LineRenderer _lineRenderer;
 
-    private void ShootRay()
+    private void ShootRay() 
     {
         RaycastHit hit;
 
-        if (Physics.Raycast(shootPoint.position, shootPoint.forward, out hit, Mathf.Infinity))
+        Vector3 shotOrigin = _camera.transform.position;
+        Vector3 shotDirection = _camera.transform.forward;
+
+        Ray _ray = _camera.ViewportPointToRay(new Vector3(0.3f, 0.3f, 0));
+        Vector3 targetPoint;
+
+        if (Physics.Raycast(shotOrigin, shotDirection, out hit, Mathf.Infinity))
         {
-            _enemyStats = GetComponent<EnemyStats>();
+            targetPoint = hit.point;
+            IDamageable damageable = hit.collider.GetComponent<IDamageable>();
 
             Debug.Log("Hit object: " + hit.transform.name);
-            if (hit.transform.CompareTag("Enemy"))
+            _lineRenderer.SetPosition(1, hit.point);
+            if (damageable != null)
             {
-                Debug.Log("Enemy hit!\n-1/2 hp");
-                _enemyStats.health -= 50;
+                damageable.TakeDamage(33.34f);
             }
         }
+        else
+        {
+            targetPoint = _ray.GetPoint(150f);
+        }
+
+        StartCoroutine(RenderTracer(targetPoint));
     }
 
+    IEnumerator RenderTracer(Vector3 target)
+    {
+        _lineRenderer.enabled = true;
+        _lineRenderer.SetPosition(0, muzzle.transform.position);
+        _lineRenderer.SetPosition(1, target);
+
+        yield return new WaitForSeconds(0.05f);
+        _lineRenderer.enabled = false;
+    }
 
     void Start()
     {
