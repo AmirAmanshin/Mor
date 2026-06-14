@@ -4,21 +4,31 @@ using UnityEngine.SceneManagement;
 
 public class PlayerStats : MonoBehaviour, IDamageable
 {
+    [Header("Player ConStats")]
+    [SerializeField] public float speed = 6.0f;
+    [SerializeField] public float jumpForce = 4.5f;
+    //[SerializeField] private float staminaRegeneration = 15.0f;
+    //[SerializeField] private float maxStamina = 100.0f;
+
+    [Header("Player FluidStats")]
     [SerializeField] public float health = 100.0f;
-    [SerializeField] public float visibility = 100.0f;
-    [SerializeField] public float speed = 5.0f;
-    [SerializeField] public float jumpForce = 5.0f;
-    public Slider healthSlider;
+    //[SerializeField] public float currentStamina = 100.0f;
+    [SerializeField] public float visibility = 0;
+    [SerializeField] public float noiseLevel = 0;
+
+    [Header("World to Player Stats")]
+    [SerializeField] public float illuminationLevel = 0f;
+
+
+    [Header("References")]
+    [SerializeField] private PlayerMovement _playerMovement;
+    [SerializeField] private EnemyUpgrader enemyUpgrader;
+
 
     public void TakeDamage(float damage)
     {
         health -= damage;
-        Debug.Log("Игрок получил урон! Осталось HP: " + health);
-
-        if (healthSlider != null)
-        {
-            healthSlider.value = health;
-        }
+        Debug.Log("Player took damage! Left HP: " + health);
 
         if (health <= 0)
         {
@@ -32,28 +42,6 @@ public class PlayerStats : MonoBehaviour, IDamageable
 
         int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
 
-        // Загружаем её заново
-        SceneManager.LoadScene(currentSceneIndex);
-    }
-
-    //[Header("Crouch Settings")]
-    //[SerializeField] public float crouchHeight = 1f;  // Высота приседа (половина от стандартных 2м)
-    //[SerializeField] public float standHeight = 2f;   // Обычная высота
-    //[SerializeField] public float crouchSpeed = 2f;
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        if (healthSlider != null)
-        {
-            healthSlider.maxValue = health;
-            healthSlider.value = health;
-        }
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
+        EnemyUpgrader.Instance.ResetUpgrades();
     }
 }

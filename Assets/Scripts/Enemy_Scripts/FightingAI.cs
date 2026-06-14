@@ -1,19 +1,44 @@
 using UnityEngine;
+using UnityEngine.AI;
 
 public class FightingAI : MonoBehaviour, IDamageable
 {
-    [SerializeField] public float currentHealth;
-    [SerializeField] public float speed = 3.0f;
+    public float currentHealth = 100.0f;
+    [SerializeField] private PlayerUI _playerUI;
     public bool isAlive = true;
 
     [Header("Attack Settings")]
-    public float damageAmount = 10f;
+    public float damageAmount = 25f;
     public float attackCooldown = 1.0f;
-    private float nextAttackTime;
+    private float nextAttackTime = 0.1f;
+    public float speed = 3.0f;
+
+    private void Start()
+    {
+        GameObject playerContainer = GameObject.FindWithTag("Player");
+        if (playerContainer != null)
+        {
+            _playerUI = playerContainer.GetComponent<PlayerUI>();
+        }
+
+        if (EnemyUpgrader.Instance != null)
+        {
+            // Обращаемся к свойствам (с большой буквы)
+            attackCooldown = EnemyUpgrader.Instance.CurrentEnemyAttackCooldown;
+            speed = EnemyUpgrader.Instance.CurrentEnemySpeed;
+        }
+
+        // Передаем скорость в NavMeshAgent прямо здесь и сейчас
+        NavMeshAgent agent = GetComponent<NavMeshAgent>();
+        if (agent != null)
+        {
+            agent.speed = speed;
+            Debug.Log("Скорость НавМеш Агента установлена на: " + agent.speed);
+        }
+    }
 
     private void OnTriggerStay(Collider other)
     {
-        // Проверяем время и то, что мы коснулись именно игрока
         if (Time.time >= nextAttackTime && other.CompareTag("Player"))
         {
             IDamageable player = other.GetComponent<IDamageable>();
@@ -30,6 +55,7 @@ public class FightingAI : MonoBehaviour, IDamageable
         currentHealth -= damageAmount;
         if (currentHealth <= 0)
         {
+            isAlive = false;
             Debug.Log(gameObject.name + " is dead");
             Die();
         }
@@ -37,22 +63,10 @@ public class FightingAI : MonoBehaviour, IDamageable
         {
             Debug.Log(gameObject.name + " hit! It's health now: " + currentHealth);
         }
-        
     }
 
     void Die()
     {
         Destroy(transform.root.gameObject);
-    }
-
-    void Start()
-    {
-        currentHealth = 100.0f;
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
     }
 }

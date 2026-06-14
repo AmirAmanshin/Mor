@@ -1,37 +1,51 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
 public class EnemySpawner : MonoBehaviour
 {
-    [SerializeField] private GameObject currentEnemy;
     [SerializeField] private GameObject enemyPrefab;
-    [SerializeField] private Transform spawnPointTransform;
+    [SerializeField] private float spawnRadius = 20f;
+    [SerializeField] private PlayerUI _playerUI;
 
-    
+    [Header("Wave Settings")]
+
+    private List<GameObject> activeEnemies = new List<GameObject>();
 
     void Start()
     {
-        if (currentEnemy == null)
-        {
-            SpawnEnemy();
-        }
+        SpawnWave();
     }
 
     void Update()
     {
-        if (currentEnemy == null)
+        activeEnemies.RemoveAll(enemy => enemy == null);
+        if (activeEnemies.Count == 0)
         {
-            
-            SpawnEnemy();
+            SpawnWave();
         }
     }
 
-    void SpawnEnemy()
-    { 
+    private void SpawnWave()
+    {
+
+       
+    }
+
+    private void SpawnSingleEnemy()
+    {
+        Vector3 randomDirection = Random.insideUnitSphere * spawnRadius;
+        randomDirection += transform.position;
+
         NavMeshHit hit;
-        if (NavMesh.SamplePosition(spawnPointTransform.position, out hit, 2.0f, NavMesh.AllAreas))
+        if (NavMesh.SamplePosition(randomDirection, out hit, spawnRadius, NavMesh.AllAreas))
         {
-            currentEnemy = Instantiate(enemyPrefab, hit.position, spawnPointTransform.rotation);
+            GameObject newEnemy = Instantiate(enemyPrefab, hit.position, Quaternion.identity);
+            activeEnemies.Add(newEnemy);
+        }
+        else
+        {
+            Debug.LogWarning("No place for spawning.");
         }
     }
 }
